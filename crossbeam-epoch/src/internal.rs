@@ -536,24 +536,24 @@ impl Local {
 }
 
 impl IsElement<Local> for Local {
-    fn entry_of(local: &Local) -> &Entry {
+    fn entry_of(local: *const Local) -> *const Entry {
         unsafe {
-            let entry_ptr = (local as *const Local as *const u8)
+            local
+                .cast::<u8>()
                 .add(offset_of!(Local, entry))
-                .cast::<Entry>();
-            &*entry_ptr
+                .cast::<Entry>()
         }
     }
 
-    unsafe fn element_of(entry: &Entry) -> &Local {
-        let local_ptr = (entry as *const Entry as *const u8)
+    unsafe fn element_of(entry: *const Entry) -> *const Local {
+        entry
+            .cast::<u8>()
             .sub(offset_of!(Local, entry))
-            .cast::<Local>();
-        &*local_ptr
+            .cast::<Local>()
     }
 
-    unsafe fn finalize(entry: &Entry, guard: &Guard) {
-        guard.defer_destroy(Shared::from(Self::element_of(entry) as *const _));
+    unsafe fn finalize(entry: *const Entry, guard: &Guard) {
+        guard.defer_destroy(Shared::from(Self::element_of(entry)));
     }
 }
 
